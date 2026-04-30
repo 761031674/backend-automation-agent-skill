@@ -57,4 +57,4 @@ Agent 应在以下场景查阅对应规范：
 **处理**：如果 specifications 之间出现矛盾（如 `coding-standard.md` 与 `security-audit.md` 对同一问题有不同要求），以 `security-audit.md` 为准，并提醒用户更新规范。
 
 ### 多项目共存
-**处理**：`specifications/` 下可存在多个项目目录（如 `specifications/cls/`、`specifications/project-b/`）。Agent 必须通过上述"如何确定当前项目"的流程明确当前项目，避免混用不同项目的规范。
+**处理**：`specifications/` 下可存在多个项目目录（如 `specifications/project-b/`）。Agent 必须通过上述"如何确定当前项目"的流程明确当前项目，避免混用不同项目的规范。
