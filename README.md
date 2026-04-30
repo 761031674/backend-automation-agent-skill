@@ -5,7 +5,7 @@
 ## 架构概览
 
 ```
-.lingma/
+backend-automation-agent-skill/
 ├── agents/           # 角色定义（6个Agent）
 ├── skills/           # 通用能力插件（6个Skill）
 └── specifications/   # 项目专属规范（按类型分类）
