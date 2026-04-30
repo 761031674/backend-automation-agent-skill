@@ -45,7 +45,7 @@ backend-automation-agent-skill/
 
 ---
 
-## 规范目录（specifications/`{project-name}`/）
+## 规范目录（specifications/project-name/）
 
 规范文件按类型分类存放，支持多项目适配：
 
