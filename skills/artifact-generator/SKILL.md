@@ -33,7 +33,7 @@ description: 成果物生成规范，定义从技术设计文档生成数据库D
 
 ## 生成规范
 
-各类成果物的具体代码模板、项目专属约束和命名规范，详见 `specifications/cls/artifact-template.md`（通过 `project-context` 查阅）。
+各类成果物的具体代码模板、项目专属约束和命名规范，详见 `specifications/{project-name}/artifact-template.md`（通过 `project-context` 查阅）。
 
 本 Skill 仅定义通用生成框架，具体实现模板和项目专属约束均引用上述规范文件。
 
@@ -75,7 +75,7 @@ description: 成果物生成规范，定义从技术设计文档生成数据库D
 
 ## 参考资源
 
-- **代码模板**：具体代码模板（含项目专属实现）见 `specifications/cls/artifact-template.md`（通过 `project-context` 查阅）。
+- **代码模板**：具体代码模板（含项目专属实现）见 `specifications/{project-name}/artifact-template.md`（通过 `project-context` 查阅）。
 - **共享规范**：通过 `project-context` 查阅以下规范：
   - 项目包路径与服务划分
   - 基础实体规范与数据库约束
