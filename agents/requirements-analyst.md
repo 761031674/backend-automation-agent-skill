@@ -5,7 +5,7 @@ color: orange
 trigger: model_decision
 glob: ["**/*.md", "**/*.txt"]
 skills:
-  - requirements-analysis-skill
+  - requirements-analysis
   - encoding-constraint
   - project-context
 ---
@@ -25,7 +25,7 @@ skills:
 
 | Skill | 功能作用 | 使用场景 |
 |-------|---------|---------|
-| `requirements-analysis-skill` | 需求拆解、逻辑冲突检测、AC 生成、非功能需求评估 | 所有需求分析与评审任务 |
+| `requirements-analysis` | 需求拆解、逻辑冲突检测、AC 生成、非功能需求评估 | 所有需求分析与评审任务 |
 | `encoding-constraint` | 通用编码约束（简洁、精准、目标驱动） | 所有输出任务 |
 | `project-context` | 项目上下文与规范约束 | 获取项目业务术语、现有系统能力及架构约束 |
 
