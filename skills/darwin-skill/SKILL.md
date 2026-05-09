@@ -1,26 +1,18 @@
 ---
 name: darwin-skill
-description: "Darwin Skill (达尔文.skill): autonomous skill optimizer inspired by Karpathy's autoresearch. Evaluates SKILL.md files using an 8-dimension rubric (structure + effectiveness), runs hill-climbing with git version control, validates improvements through test prompts, and generates visual result cards. Use when user mentions \"优化skill\", \"skill评分\", \"自动优化\", \"auto optimize\", \"skill质量检查\", \"达尔文\", \"darwin\", \"帮我改改skill\", \"skill怎么样\", \"提升skill质量\", \"skill review\", \"skill打分\"."
+description: "Darwin Skill：自主 Skill 优化器，使用 8 维度评分对 SKILL.md 进行评估和优化。当需要优化skill、skill评分、自动优化时使用。触发词：优化skill、skill评分、自动优化、达尔文、darwin"
+trigger: model_decision
 ---
 
 # Darwin Skill
 
-> 借鉴 Karpathy autoresearch 的自主实验循环，对 skills 进行持续优化。
-> 核心理念：**评估 → 改进 → 实测验证 → 人类确认 → 保留或回滚 → 生成成果卡片**
-> GitHub: https://github.com/alchaincyf/darwin-skill
-
----
+> **TL;DR**：评估 → 改进 → 实测验证 → 人类确认 → 保留或回滚。
+> 借鉴 Karpathy autoresearch 理念，通过 8 维度评分和 git 版本控制实现 Skill 自主进化。
 
 ## 设计哲学
 
-autoresearch 的精髓：
-1. **单一可编辑资产** — 每次只改一个 SKILL.md
-2. **双重评估** — 结构评分（静态分析）+ 效果验证（跑测试看输出）
-3. **棘轮机制** — 只保留改进，自动回滚退步
-4. **独立评分** — 评分用子agent，避免「自己改自己评」的偏差
-5. **人在回路** — 每个skill优化完后暂停，用户确认再继续
-
-与纯结构审查的区别：不只看 SKILL.md 写得规不规范，更看改完后**实际跑出来的效果是否更好**。
+autoresearch 精髓：**单一资产、双重评估、棘轮机制、独立评分、人在回路**。
+与纯结构审查不同，本 Skill 强调改完后**实际跑出来的效果是否更好**。
 
 ---
 
@@ -125,8 +117,8 @@ for each skill in 优化范围:
 ┌──────────────────────────┬───────┬──────────────┬──────────────┐
 │ Skill                    │ Score │ 结构短板      │ 效果短板      │
 ├──────────────────────────┼───────┼──────────────┼──────────────┤
-│ huashu-proofreading      │ 78    │ 边界条件      │ 测试prompt2  │
-│ huashu-slides            │ 72    │ 指令具体性    │ baseline持平  │
+│ example-skill-a          │ 78    │ 边界条件      │ 测试prompt2  │
+│ example-skill-b          │ 72    │ 指令具体性    │ baseline持平  │
 ├──────────────────────────┼───────┼──────────────┼──────────────┤
 │ 平均                     │ 75    │              │              │
 └──────────────────────────┴───────┴──────────────┴──────────────┘
@@ -136,51 +128,28 @@ for each skill in 优化范围:
 
 ### Phase 2: 优化循环
 
-用户确认后，按基线分数从低到高排序，先优化最弱的。
+用户确认后，按基线分数从低到高排序，先优化最弱的。对每个 Skill 执行以下步骤：
 
-```
-for each skill:
-  round = 0
-  while round < MAX_ROUNDS (默认3):
-    round += 1
+1.  **诊断**：找出得分最低的维度（结构或效果）。
+2.  **提出方案**：针对最低维度生成 1 个具体改进方案（改什么、为什么、预期提升）。
+3.  **执行改进**：编辑 `SKILL.md` 并 `git commit`。
+4.  **重新评估**：主 Agent 重评结构维度，子 Agent 重跑测试 Prompt 评估效果维度。
+5.  **决策**：
+    *   若新总分 > 旧总分：保留改动，更新基准分。
+    *   否则：`git revert` 回滚，记录失败尝试，跳出当前 Skill 循环。
+6.  **人类检查点**：展示改动摘要和分数变化，等用户确认 OK 后再处理下一个 Skill。
 
-    # Step 1: 诊断
-    找出得分最低的维度（结构或效果都算）
+### 优化停止条件
 
-    # Step 2: 提出改进方案
-    针对最低维度，生成1个具体改进方案：
-      - 改什么（具体段落/行）
-      - 为什么改（对应rubric哪条）
-      - 预期提升多少分
+满足以下任一条件时，停止当前 skill 的优化循环，进入下一个 skill：
 
-    # Step 3: 执行改进
-    编辑 SKILL.md
-    git add + commit（message: "optimize {skill}: {改进摘要}"）
+1. 新总分 ≥ 90 分
+2. 当前 round 已达到 MAX_ROUNDS（默认3）且总分无提升
+3. 连续 2 个 skill 都在 round 1 就 break（进入 Phase 2.5 探索性重写）
+4. 用户明确说"够了"或"收工"
+5. 文件大小已达原始 150% 上限
 
-    # Step 4: 重新评估
-    - 结构维度：主agent重新打分
-    - 效果维度：spawn独立子agent重跑测试prompt（关键！不能自己评自己）
-
-    # Step 5: 决策
-    if 新总分 > 旧总分:
-      status = "keep"，更新旧总分
-    else:
-      status = "revert"
-      git revert HEAD（创建新commit回滚，不用reset --hard）
-      记录失败尝试到 results.tsv
-      break  # 该skill到瓶颈，跳到下一个
-
-    # Step 6: 日志
-    results.tsv 追加行
-
-  # === 每个skill优化完后的人类检查点 ===
-  展示该skill的改动摘要：
-    - git diff（改前 vs 改后）
-    - 分数变化（哪些维度提升/下降）
-    - 测试prompt输出对比（如果跑过的话）
-  等用户确认 OK 再继续下一个skill。
-  如果用户说"不好"，回滚到该skill的优化前版本。
-```
+> **检查点**：停止前向用户展示当前分数和最弱维度，确认是否继续。
 
 ### Phase 2.5: 探索性重写（可选）
 
@@ -214,8 +183,8 @@ for each skill:
 ┌──────────────────────────┬────────┬────────┬────────┐
 │ Skill                    │ Before │ After  │ Δ      │
 ├──────────────────────────┼────────┼────────┼────────┤
-│ huashu-proofreading      │ 78     │ 87     │ +9     │
-│ huashu-slides            │ 72     │ 83     │ +11    │
+│ example-skill-a          │ 78     │ 87     │ +9     │
+│ example-skill-b          │ 72     │ 83     │ +11    │
 ├──────────────────────────┼────────┼────────┼────────┤
 │ 平均                     │ 75     │ 85     │ +10    │
 └──────────────────────────┴────────┴────────┴────────┘
@@ -267,6 +236,23 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 
 ---
 
+## 维度改进模板速查
+
+按8维度快速定位改进动作：
+
+| 维度 | 常见短板 | 典型改进动作 |
+|------|---------|------------|
+| 1 Frontmatter | 触发词缺失/不全 | 补充中英文触发词，确保description≤1024字符 |
+| 2 工作流 | 步骤模糊、无输入输出 | 为每步补充"输入→动作→输出"结构 |
+| 3 边界条件 | 异常场景遗漏 | 补充"如果X失败，则Y"的fallback路径 |
+| 4 检查点 | 关键决策无确认 | 在分支选择、输出交付前插入检查点 |
+| 5 指令具体性 | 描述抽象、缺示例 | 补充代码示例、格式模板、决策树 |
+| 6 资源整合度 | 引用路径不存在 | 将硬编码路径改为占位符或通过project-context路由 |
+| 7 整体架构 | 结构冗余或遗漏 | 增加TL;DR速查、合并重复章节、补充缺失环节 |
+| 8 实测表现 | 测试prompt质量差 | 设计更贴近真实场景的测试prompt，对比baseline |
+
+---
+
 ## 异常与边界条件
 
 流程假设环境理想，但实操常遇异常。以下预定义 fallback，保证优化过程不会「一跑就卡住」。
@@ -283,6 +269,8 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 | test-prompts.json 已存在 | 文件已在 skill 目录 | 默认复用并展示，问用户「复用 / 重写 / 追加」三选一 |
 | SKILL.md 找不到 | 目录存在但无 SKILL.md | 该 skill 终止，results.tsv 记 `status=error`，继续下一个 |
 | 分数计算规则 | 浮点精度漂移 | 总分保留 1 位小数，改进需严格 > 旧分（不靠四舍五入） |
+| 评分争议 | 不同评分者对同一维度打分差异≥2分 | 展示双方理由，取平均分；若争议在"实测表现"维度，重跑测试prompt |
+| 视觉成果卡片资源缺失 | `templates/result-card.html` 或 `scripts/screenshot.mjs` 不存在 | 自动降级为方式A（纯文本卡片），告知用户"方式B资源未准备，已使用方式A输出" |
 
 **原则**：异常先告知用户，再按规则处理；绝不静默跳过或静默失败。
 
@@ -294,7 +282,7 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2. **不引入新依赖** — 不添加skill原本没有的scripts或references文件
 3. **每轮只改一个维度** — 避免多个变更导致无法归因
 4. **保持文件大小合理** — 优化后SKILL.md不应超过原始大小的150%
-5. **尊重花叔风格** — 中文为主、简洁为上
+5. **保持中文风格** — 中文为主、简洁为上
 6. **可回滚** — 所有改动在git分支上，用git revert而非reset --hard
 7. **评分独立性** — 效果维度必须用子agent或至少干跑验证，不能在同一上下文里「改完直接评」
 
@@ -319,6 +307,14 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 ```
 用户："评估所有skills的质量"
 → 只执行 Phase 0.5-1（设计测试prompt + 基线评估），不进入优化循环
+```
+
+### 快速评估模式
+```
+用户："快速评估 code-review 这个skill"
+→ 跳过 Phase 0.5-2，直接读取 SKILL.md
+→ 按8维度rubric打分（维度8用干跑验证）
+→ 5分钟内输出评分卡 +  Top 3 改进建议
 ```
 
 ### 查看历史
@@ -361,7 +357,29 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 | Dark Terminal | `.theme-terminal` | `#terminal` | 近黑底+荧光绿，等宽字体，扫描线 |
 | Newspaper | `.theme-newspaper` | `#newspaper` | 暖白纸+深红，衬线字体，双栏编辑风 |
 
-### 生成流程
+### 生成方式
+
+提供两档输出，根据环境资源选择：
+
+#### 方式A：纯文本成果卡片（主流程，默认）
+
+不依赖任何外部资源，直接用 Markdown/文本表格输出：
+
+```markdown
+## {skill-name} 优化成果
+
+| 维度 | Before | After | Δ |
+|------|--------|-------|---|
+| 总分 | 78 | 87 | +9 |
+
+### 主要改进
+1. ...
+2. ...
+```
+
+#### 方式B：视觉成果卡片 PNG（可选增强）
+
+如需生成截图卡片，需自行准备 `templates/result-card.html` 和 `scripts/screenshot.mjs`，然后执行：
 
 ```
 1. 复制 templates/result-card.html 到临时工作文件
@@ -378,14 +396,16 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
    npx playwright screenshot "file:///path/to/card.html#[theme]" \
      output.png --viewport-size=960,1280 --wait-for-timeout=2000
 5. 提示用户查看成果卡片 PNG
+```
 
+> **注意**：方式B为可选增强，不影响主流程。若资源未准备，直接采用方式A输出即可。
 ### 资源文件速查
 
 | 路径 | 用途 | 状态 |
 |---|---|---|
-| `templates/result-card.html` | 3风格主模板（swiss/terminal/newspaper，hash切换） | 需自行准备 |
-| `templates/result-card-dark.html` / `-white.html` | 单一风格替代模板（需要锁定风格时用） | 需自行准备 |
-| `scripts/screenshot.mjs` | 2x 高清截图，只截 .card，自动 open | 需自行准备 |
+| `templates/result-card.html` | 3风格主模板（swiss/terminal/newspaper，hash切换） | 需自行准备（参考 github.com/alchaincyf/darwin-skill） |
+| `templates/result-card-dark.html` / `-white.html` | 单一风格替代模板（需要锁定风格时用） | 需自行准备（可选） |
+| `scripts/screenshot.mjs` | 2x 高清截图，只截 .card，自动 open | 需自行准备（可选，方式B专用） |
 | `results.tsv` | 历次优化日志（9列含 eval_mode） | 自动创建 |
 | `{skill目录}/test-prompts.json` | 每个 skill 的测试 prompt 集（用于维度8实测） | 自动创建 |
 ```
