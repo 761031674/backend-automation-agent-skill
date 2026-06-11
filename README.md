@@ -10,8 +10,8 @@
 ├── skills/           # 通用能力插件（4个Skill）
 ├── projects/         # 项目配置（按项目名分目录）
 │   └── {project}/
-│       ├── config.md            # 项目专属配置
-│       └── specifications/      # 项目专属规范
+│       ├── config.md            # 项目专属配置（自行准备/让ai自动补充）
+│       └── specifications/      # 项目专属规范（自行准备/让ai自动补充）
 |—— CONVENTIONS.md    # 使用约定
 ```
 
