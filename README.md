@@ -141,21 +141,17 @@ Agent/Skill 可直接拷贝到任意项目使用：
 
 | 时间 | 变更 |
 |------|------|
-| 初始 | 建立 Agent-Skill 插件化架构 |
-| 解耦 | Skill 与具体项目解耦 |
-| 2026-06 | 架构重构：删除 project-context Skill，改为 projects/{project}/config.md 直接配置 |
-| 2026-06 | 激进优化：9 Agent → 5 Agent，7 Skill → 4 Skill |
-| 2026-06 | 合并：软件架构师+后端架构师+技术文档工程师→架构师 |
-| 2026-06 | 合并：数据层工程师+接口层工程师→代码生成工程师 |
-| 2026-06 | 合并：代码审查员+测试分析师→质量保障专家 |
-| 2026-06 | 内联：需求分析Skill→需求分析师，代码审查Skill→质量保障专家 |
-| 2026-06 | darwin-skill 精简为 skill-evaluation（184行→74行） |
-| 2026-06 | think-work-rule.md 合并到 AGENTS.md，删除残留文件 |
-| 2026-06 | 新增 DevOps 工程师 Agent（CI/CD、容器化、K8s部署） |
-| 2026-06 | 新增安全审计师 Agent（代码安全、依赖安全、合规性） |
-| 2026-06 | 新增 git-workflow Skill（分支策略、提交规范、PR模板） |
-| 2026-06 | 使用频率精简：移除 DevOps 工程师、安全审计师、git-workflow（低频/无引用） |
-| 2026-06 | 新增深度检查模式：架构师、质量保障专家支持可选多轮检查 |
-| 2026-06 | 质量修复：统一依赖声明为正文「前置加载」方式，移除 frontmatter skills 字段 |
+| 2026-03 | 建立 Agent-Skill 插件化架构 |
+| 2026-06 | Skill 与具体项目解耦 |
+| 2026-09 | 架构重构：删除 project-context Skill，改为 projects/{project}/config.md 直接配置 |
+| 2026-09 | 激进优化：9 Agent → 5 Agent，7 Skill → 4 Skill |
+| 2026-09 | 合并：软件架构师+后端架构师+技术文档工程师→架构师 |
+| 2026-09 | 合并：数据层工程师+接口层工程师→代码生成工程师 |
+| 2026-09 | 合并：代码审查员+测试分析师→质量保障专家 |
+| 2026-09 | 内联：需求分析Skill→需求分析师，代码审查Skill→质量保障专家 |
+| 2026-09 | darwin-skill 精简为 skill-evaluation（184行→74行） |
+| 2026-09 | 使用频率精简：移除 DevOps 工程师、安全审计师、git-workflow（低频/无引用） |
+| 2026-09 | 新增深度检查模式：架构师、质量保障专家支持可选多轮检查 |
+| 2026-09 | 质量修复：统一依赖声明为正文「前置加载」方式，移除 frontmatter skills 字段 |
 | 2026-06 | 质量修复：artifact-generator/parallel-dispatch 引用更新（旧 Agent 名、平台特定 API） |
 | 2026-06 | 质量修复：skill-evaluation 补充评分示例 |
